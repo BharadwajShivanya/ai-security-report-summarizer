@@ -8,3 +8,6 @@ s3transfer==0.19.1
 six==1.17.0
 streamlit==1.47.0
 urllib3==2.7.0
+fastapi==0.116.1
+uvicorn==0.35.0
+python-multipart==0.0.20
