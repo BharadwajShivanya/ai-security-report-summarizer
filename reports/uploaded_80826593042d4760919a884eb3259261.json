@@ -1,0 +1,120 @@
+{
+  "image": "secure-image:latest",
+  "summary": {
+    "fatal": 5,
+    "warn": 2,
+    "info": 4,
+    "skip": 0,
+    "pass": 5
+  },
+  "details": [
+    {
+      "code": "CIS-DI-0007",
+      "title": "Do not use update instructions alone in the Dockerfile",
+      "level": "FATAL",
+      "alerts": [
+        "Always combine 'apt-get update' with 'apt-get install|upgrade' : RUN /bin/sh -c apt-get update # buildkit"
+      ]
+    },
+    {
+      "code": "CIS-DI-0009",
+      "title": "Use COPY instead of ADD in Dockerfile",
+      "level": "FATAL",
+      "alerts": [
+        "Use COPY : ADD . /app # buildkit"
+      ]
+    },
+    {
+      "code": "CIS-DI-0010",
+      "title": "Do not store credential in environment variables/files",
+      "level": "FATAL",
+      "alerts": [
+        "Suspicious filename found : root/.ssh/id_rsa (You can suppress it with \"-af id_rsa\")",
+        "Suspicious ENV key found : API_KEY on ENV API_KEY=******* (You can suppress it with --accept-key)",
+        "Suspicious ENV key found : password on LABEL maintainer=admin@example.com password=******* (You can suppress it with --accept-key)",
+        "Suspicious ENV key found : DATABASE_PASSWORD on ENV DATABASE_PASSWORD=******* (You can suppress it with --accept-key)"
+      ]
+    },
+    {
+      "code": "DKL-DI-0001",
+      "title": "Avoid sudo command",
+      "level": "FATAL",
+      "alerts": [
+        "Avoid sudo in container : RUN /bin/sh -c apt-get install -y sudo ssh vim curl # buildkit"
+      ]
+    },
+    {
+      "code": "DKL-DI-0005",
+      "title": "Clear apt-get caches",
+      "level": "FATAL",
+      "alerts": [
+        "Use 'rm -rf /var/lib/apt/lists' after 'apt-get install|update' : RUN /bin/sh -c apt-get update # buildkit",
+        "Use 'rm -rf /var/lib/apt/lists' after 'apt-get install|update' : RUN /bin/sh -c apt-get install -y sudo ssh vim curl # buildkit"
+      ]
+    },
+    {
+      "code": "CIS-DI-0001",
+      "title": "Create a user for the container",
+      "level": "WARN",
+      "alerts": [
+        "Last user should not be root"
+      ]
+    },
+    {
+      "code": "DKL-DI-0006",
+      "title": "Avoid latest tag",
+      "level": "WARN",
+      "alerts": [
+        "Avoid 'latest' tag"
+      ]
+    },
+    {
+      "code": "CIS-DI-0005",
+      "title": "Enable Content trust for Docker",
+      "level": "INFO",
+      "alerts": [
+        "export DOCKER_CONTENT_TRUST=1 before docker pull/build"
+      ]
+    },
+    {
+      "code": "CIS-DI-0006",
+      "title": "Add HEALTHCHECK instruction to the container image",
+      "level": "INFO",
+      "alerts": [
+        "not found HEALTHCHECK statement"
+      ]
+    },
+    {
+      "code": "CIS-DI-0008",
+      "title": "Confirm safety of setuid/setgid files",
+      "level": "INFO",
+      "alerts": [
+        "setgid file: grwxr-xr-x usr/sbin/unix_chkpwd",
+        "setuid file: urwxr-xr-x usr/bin/mount",
+        "setgid file: grwxr-xr-x usr/bin/ssh-agent",
+        "setgid file: grwxr-xr-x usr/bin/expiry",
+        "setgid file: grwxr-xr-x usr/sbin/pam_extrausers_chkpwd",
+        "setuid file: urwxr-xr-x usr/bin/newgrp",
+        "setuid file: urwxr-xr-x usr/bin/sudo",
+        "setuid file: urwxr-xr-x usr/lib/openssh/ssh-keysign",
+        "setuid file: urwxr-xr-x usr/bin/gpasswd",
+        "setuid file: urwxr-xr-x usr/bin/passwd",
+        "setuid file: urwxr-xr-- usr/lib/dbus-1.0/dbus-daemon-launch-helper",
+        "setuid file: urwxr-xr-x usr/bin/chfn",
+        "setuid file: urwxr-xr-x usr/bin/su",
+        "setgid file: grwxr-xr-x usr/bin/chage",
+        "setuid file: urwxr-xr-x usr/bin/umount",
+        "setuid file: urwxr-xr-x usr/bin/chsh"
+      ]
+    },
+    {
+      "code": "DKL-LI-0003",
+      "title": "Only put necessary files",
+      "level": "INFO",
+      "alerts": [
+        "Suspicious directory : app/.git ",
+        "unnecessary file : app/Dockerfile "
+      ]
+    }
+  ]
+}

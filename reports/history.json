@@ -1,0 +1,106 @@
+[
+  {
+    "id": "uploaded_80826593042d4760919a884eb3259261",
+    "timestamp": "Unknown",
+    "filename": "dockle-report.json",
+    "artifact_name": "Unknown",
+    "os": "Unknown",
+    "total_packages": 184,
+    "total_vulnerabilities": 0,
+    "stats": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "unknown": 0
+    },
+    "top_packages": []
+  },
+  {
+    "id": "uploaded_11544802e5c04296bf7bb7bc29d660f5",
+    "timestamp": "2026-07-13T15:17:05.530916+05:30",
+    "filename": "sample_trivy.json",
+    "artifact_name": "nginx:latest",
+    "os": "debian 13.5",
+    "total_packages": 151,
+    "total_vulnerabilities": 376,
+    "stats": {
+      "total": 376,
+      "critical": 2,
+      "high": 70,
+      "medium": 139,
+      "low": 128,
+      "unknown": 37
+    },
+    "top_packages": [
+      {
+        "package": "curl",
+        "count": 30
+      },
+      {
+        "package": "libcurl4t64",
+        "count": 30
+      },
+      {
+        "package": "libexpat1",
+        "count": 22
+      },
+      {
+        "package": "libheif-plugin-dav1d",
+        "count": 19
+      },
+      {
+        "package": "libheif-plugin-libde265",
+        "count": 19
+      },
+      {
+        "package": "libheif1",
+        "count": 19
+      }
+    ]
+  },
+  {
+    "id": "sample_trivy",
+    "timestamp": "2026-07-13T15:17:05.530916+05:30",
+    "filename": "sample_trivy.json",
+    "artifact_name": "nginx:latest",
+    "os": "debian 13.5",
+    "total_packages": 151,
+    "total_vulnerabilities": 376,
+    "stats": {
+      "total": 376,
+      "critical": 2,
+      "high": 70,
+      "medium": 139,
+      "low": 128,
+      "unknown": 37
+    },
+    "top_packages": [
+      {
+        "package": "curl",
+        "count": 30
+      },
+      {
+        "package": "libcurl4t64",
+        "count": 30
+      },
+      {
+        "package": "libexpat1",
+        "count": 22
+      },
+      {
+        "package": "libheif-plugin-dav1d",
+        "count": 19
+      },
+      {
+        "package": "libheif-plugin-libde265",
+        "count": 19
+      },
+      {
+        "package": "libheif1",
+        "count": 19
+      }
+    ]
+  }
+]

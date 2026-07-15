@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Security Report Summarizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C10;
+  --bg-alt:#0D1015;
+  --surface:#12151B;
+  --surface-2:#181C24;
+  --surface-3:#1E232C;
+  --border:#242A34;
+  --border-soft:#1B202A;
+  --text-1:#E7E9EE;
+  --text-2:#98A0B3;
+  --text-3:#5B6373;
+  --accent:#4C8DFF;
+  --accent-dim:#1E3A66;
+  --accent-glow:rgba(76,141,255,.14);
+  --critical:#E5484D;
+  --critical-bg:rgba(229,72,77,.12);
+  --high:#F0973D;
+  --high-bg:rgba(240,151,61,.12);
+  --medium:#E8C13A;
+  --medium-bg:rgba(232,193,58,.12);
+  --low:#3ECF8E;
+  --low-bg:rgba(62,207,142,.12);
+  --unknown:#6B7280;
+  --unknown-bg:rgba(107,114,128,.12);
+  --radius-sm:6px;
+  --radius:10px;
+  --radius-lg:16px;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text-1);font-family:var(--font-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+body{min-height:100vh;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+::selection{background:var(--accent-dim);color:#fff;}
+.mono{font-family:var(--font-mono);}
+.hidden{display:none !important;}
+
+/* ---------- scrollbar ---------- */
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:8px;border:2px solid var(--bg);}
+
+/* ================= LANDING ================= */
+.landing{position:relative;overflow:hidden;background:
+  radial-gradient(ellipse 900px 500px at 50% -10%, rgba(76,141,255,.10), transparent 60%),
+  linear-gradient(var(--bg-alt), var(--bg));
+  min-height:100vh;}
+.landing-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;position:relative;z-index:5;}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:17px;letter-spacing:.2px;}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),#2358B8);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-mark svg{width:15px;height:15px;}
+.landing-nav-links{display:flex;gap:32px;align-items:center;}
+.landing-nav-links a{font-size:13.5px;color:var(--text-2);transition:color .15s;}
+.landing-nav-links a:hover{color:var(--text-1);}
+.nav-cta{background:var(--surface-2);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;color:var(--text-1);font-weight:500;}
+.nav-cta:hover{border-color:var(--accent);}
+
+.hero{position:relative;padding:88px 48px 40px;text-align:center;max-width:900px;margin:0 auto;z-index:2;}
+.eyebrow{font-family:var(--font-mono);font-size:11.5px;letter-spacing:2.5px;color:var(--accent);display:inline-flex;align-items:center;gap:8px;background:var(--accent-glow);border:1px solid var(--accent-dim);padding:6px 14px;border-radius:20px;margin-bottom:28px;}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--low);box-shadow:0 0 0 3px rgba(62,207,142,.18);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+.hero h1{font-family:var(--font-display);font-size:56px;font-weight:600;line-height:1.08;letter-spacing:-1.2px;margin-bottom:22px;}
+.hero p.sub{font-size:17px;color:var(--text-2);max-width:600px;margin:0 auto 36px;line-height:1.6;}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:96px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;border:1px solid transparent;transition:.15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 0 0 0 transparent;}
+.btn-primary:hover{background:#3D7DEF;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text-1);cursor:pointer;}
+.btn-ghost:hover{border-color:var(--text-3);background:var(--surface-2);}
+.btn-sm{padding:8px 14px;font-size:13px;}
+
+/* pipeline */
+.pipeline-wrap{position:relative;z-index:2;padding:0 48px 100px;max-width:1180px;margin:0 auto;}
+.pipeline-label{text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase;margin-bottom:28px;}
+.pipeline{display:flex;align-items:center;justify-content:space-between;position:relative;}
+.pipe-node{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 14px;flex:1;text-align:center;position:relative;z-index:2;min-width:0;}
+.pipe-node .ic{width:30px;height:30px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;border:1px solid var(--border-soft);}
+.pipe-node .ic svg{width:16px;height:16px;stroke:var(--text-2);}
+.pipe-node.ai .ic{background:var(--accent-glow);border-color:var(--accent-dim);}
+.pipe-node.ai .ic svg{stroke:var(--accent);}
+.pipe-node span{display:block;font-size:12px;font-weight:500;color:var(--text-1);line-height:1.3;}
+.pipe-connector{flex:0 0 auto;width:36px;height:1px;background:var(--border);position:relative;overflow:visible;margin-top:-24px;}
+.pipe-connector::after{content:'';position:absolute;top:-2px;left:0;width:6px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 2px var(--accent);animation:travel 3.2s linear infinite;}
+.pipe-connector:nth-of-type(2)::after{animation-delay:.4s;}
+.pipe-connector:nth-of-type(4)::after{animation-delay:.8s;}
+.pipe-connector:nth-of-type(6)::after{animation-delay:1.2s;}
+.pipe-connector:nth-of-type(8)::after{animation-delay:1.6s;}
+.pipe-connector:nth-of-type(10)::after{animation-delay:2.0s;}
+@keyframes travel{0%{left:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{left:calc(100% - 6px);opacity:0;}}
+
+/* ================= APP SHELL ================= */
+.app-shell{display:none;min-height:100vh;}
+.app-shell.active{display:flex;}
+.landing.active{display:block;}
+
+.sidebar{width:232px;flex-shrink:0;background:var(--bg-alt);border-right:1px solid var(--border-soft);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;}
+.sidebar-head{padding:20px 20px 18px;border-bottom:1px solid var(--border-soft);}
+.sidebar-nav{flex:1;padding:14px 12px;overflow-y:auto;}
+.nav-group-label{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;padding:6px 10px 8px;margin-top:6px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--radius-sm);font-size:13.5px;color:var(--text-2);font-weight:500;margin-bottom:2px;position:relative;transition:.12s;cursor:pointer;}
+.nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+.nav-item:hover{background:var(--surface-2);color:var(--text-1);}
+.nav-item.active{background:var(--accent-glow);color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--accent);border-radius:2px;}
+.nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:10px;background:var(--surface-3);color:var(--text-2);padding:1px 6px;border-radius:8px;}
+.sidebar-foot{padding:14px;border-top:1px solid var(--border-soft);}
+.env-pill{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border-soft);font-size:12px;color:var(--text-2);}
+.env-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--low);}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow-y:auto;}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border-soft);background:rgba(10,12,16,.85);backdrop-filter:blur(10px);}
+.topbar-title{display:flex;flex-direction:column;gap:2px;}
+.topbar-title h1{font-family:var(--font-display);font-size:18px;font-weight:600;}
+.crumb{font-size:12px;color:var(--text-3);}
+.topbar-actions{display:flex;align-items:center;gap:12px;}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;width:230px;}
+.search-box svg{width:14px;height:14px;stroke:var(--text-3);flex-shrink:0;}
+.search-box input{background:none;border:none;outline:none;color:var(--text-1);font-size:12.5px;width:100%;}
+.search-box input::placeholder{color:var(--text-3);}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text-2);}
+
+.page{padding:28px;max-width:1320px;margin:0 auto;width:100%;}
+
+/* ---------- scan info strip ---------- */
+.scan-strip{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:22px;overflow:hidden;flex-wrap:wrap;}
+.scan-item{flex:1;min-width:150px;padding:15px 20px;border-right:1px solid var(--border-soft);}
+.scan-item:last-child{border-right:none;}
+.scan-item .k{font-size:11px;color:var(--text-3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;}
+.scan-item .v{font-family:var(--font-mono);font-size:13.5px;color:var(--text-1);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ---------- section heads ---------- */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:32px 0 14px;}
+.section-head h2{font-family:var(--font-display);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.section-head h2 svg{width:16px;height:16px;stroke:var(--text-2);}
+.section-sub{font-size:12px;color:var(--text-3);}
+
+/* ---------- metric cards ---------- */
+.metric-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px;position:relative;overflow:hidden;}
+.metric-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;}
+.metric-card.critical::before{background:var(--critical);}
+.metric-card.high::before{background:var(--high);}
+.metric-card.medium::before{background:var(--medium);}
+.metric-card.low::before{background:var(--low);}
+.metric-card.unknown::before{background:var(--unknown);}
+.metric-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.metric-label{font-size:12px;font-weight:600;letter-spacing:.3px;}
+.metric-card.critical .metric-label{color:var(--critical);}
+.metric-card.high .metric-label{color:var(--high);}
+.metric-card.medium .metric-label{color:var(--medium);}
+.metric-card.low .metric-label{color:var(--low);}
+.metric-card.unknown .metric-label{color:var(--unknown);}
+.sev-dot{width:7px;height:7px;border-radius:50%;}
+.metric-card.critical .sev-dot{background:var(--critical);}
+.metric-card.high .sev-dot{background:var(--high);}
+.metric-card.medium .sev-dot{background:var(--medium);}
+.metric-card.low .sev-dot{background:var(--low);}
+.metric-card.unknown .sev-dot{background:var(--unknown);}
+.metric-value{font-family:var(--font-display);font-size:32px;font-weight:600;line-height:1;}
+.metric-foot{font-size:11.5px;color:var(--text-3);margin-top:8px;}
+
+/* ---------- charts row ---------- */
+.charts-row{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;margin-bottom:8px;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.panel-title{font-size:12.5px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.panel-sub{font-size:11px;color:var(--text-3);margin-bottom:18px;}
+
+.radar-wrap{display:flex;align-items:center;gap:22px;}
+.radar{position:relative;width:150px;height:150px;flex-shrink:0;border-radius:50%;background:conic-gradient(
+  var(--critical) 0% 8.3%,
+  var(--high) 8.3% 32.3%,
+  var(--medium) 32.3% 74.3%,
+  var(--low) 74.3% 94.1%,
+  var(--unknown) 94.1% 100%
+);}
+.radar::after{content:'';position:absolute;inset:22px;border-radius:50%;background:var(--surface);display:flex;}
+.radar-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.radar-center b{font-family:var(--font-display);font-size:22px;font-weight:600;}
+.radar-center span{font-size:9.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;}
+.radar-legend{display:flex;flex-direction:column;gap:9px;flex:1;}
+.rl-row{display:flex;align-items:center;gap:9px;font-size:12.5px;}
+.rl-row .sev-dot{width:8px;height:8px;}
+.rl-row .name{flex:1;color:var(--text-2);}
+.rl-row .num{font-family:var(--font-mono);font-weight:500;color:var(--text-1);}
+
+.bar-chart{display:flex;flex-direction:column;gap:12px;}
+.bar-row{display:grid;grid-template-columns:120px 1fr 40px;align-items:center;gap:10px;}
+.bar-row .pkg{font-family:var(--font-mono);font-size:12px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{height:8px;background:var(--surface-3);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#7BAAFF);border-radius:4px;}
+.bar-row .cnt{font-family:var(--font-mono);font-size:12px;color:var(--text-2);text-align:right;}
+
+/* ---------- process stepper ---------- */
+.stepper{display:flex;align-items:flex-start;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:28px;position:relative;}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:2;}
+.step .circle{width:32px;height:32px;border-radius:50%;background:var(--surface-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-family:var(--font-mono);font-size:12px;color:var(--text-3);}
+.step.done .circle{background:var(--low-bg);border-color:var(--low);color:var(--low);}
+.step.active .circle{background:var(--accent-glow);border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--accent-glow);}
+.step .st-label{font-size:12px;font-weight:500;color:var(--text-2);}
+.step.done .st-label,.step.active .st-label{color:var(--text-1);}
+.step-line{position:absolute;top:39px;left:8%;right:8%;height:1px;background:var(--border);z-index:1;}
+.step-line-fill{position:absolute;top:0;left:0;height:100%;background:var(--low);transition:width .4s;}
+
+/* ---------- table ---------- */
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:16px;flex-wrap:wrap;}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;color:var(--text-2);font-weight:500;background:var(--surface);}
+.chip:hover{border-color:var(--text-3);}
+.chip.active{background:var(--surface-3);color:var(--text-1);border-color:var(--text-3);}
+.chip .sev-dot{width:6px;height:6px;}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);white-space:nowrap;}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--border-soft);font-size:13px;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--surface-2);}
+td.cve{font-family:var(--font-mono);color:var(--accent);font-size:12.5px;}
+td.pkg-cell{font-family:var(--font-mono);font-size:12.5px;color:var(--text-1);}
+td.ver{font-family:var(--font-mono);font-size:12px;color:var(--text-2);}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.badge.critical{background:var(--critical-bg);color:var(--critical);}
+.badge.high{background:var(--high-bg);color:var(--high);}
+.badge.medium{background:var(--medium-bg);color:var(--medium);}
+.badge.low{background:var(--low-bg);color:var(--low);}
+.badge.unknown{background:var(--unknown-bg);color:var(--unknown);}
+.status-pill{font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;}
+.status-pill svg{width:13px;height:13px;}
+.status-pill.fixed{color:var(--low);}
+.status-pill.progress{color:var(--high);}
+.status-pill.nofix{color:var(--text-3);}
+.table-empty-row td{text-align:center;color:var(--text-3);padding:40px;font-size:13px;}
+
+/* ---------- AI report ---------- */
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.report-head{display:flex;align-items:center;justify-content:space-between;padding:20px 26px;border-bottom:1px solid var(--border-soft);background:var(--surface-2);}
+.report-head-left{display:flex;align-items:center;gap:12px;}
+.report-ic{width:34px;height:34px;border-radius:9px;background:var(--accent-glow);border:1px solid var(--accent-dim);display:flex;align-items:center;justify-content:center;}
+.report-ic svg{width:17px;height:17px;stroke:var(--accent);}
+.report-head h3{font-family:var(--font-display);font-size:15px;font-weight:600;}
+.report-head .gen-tag{font-size:11.5px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px;}
+.report-body{padding:28px 30px;max-width:760px;}
+.report-body h4{font-family:var(--font-display);font-size:14.5px;font-weight:600;margin:26px 0 10px;display:flex;align-items:center;gap:8px;color:var(--text-1);}
+.report-body h4:first-child{margin-top:0;}
+.report-body h4::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.report-body p{color:var(--text-2);font-size:13.5px;line-height:1.75;margin-bottom:10px;}
+.report-body ul{margin:10px 0 10px 4px;padding-left:18px;color:var(--text-2);font-size:13.5px;line-height:1.8;}
+.report-body li{margin-bottom:4px;}
+.report-body li b{color:var(--text-1);font-weight:600;}
+.report-body .cve-inline{font-family:var(--font-mono);color:var(--accent);font-size:12.5px;}
+.priority-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.priority-item{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:12px 14px;}
+.priority-num{font-family:var(--font-mono);font-size:11px;color:var(--accent);background:var(--accent-glow);width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.priority-item div p{margin:0;font-size:13px;color:var(--text-2);}
+.priority-item div b{color:var(--text-1);font-size:13px;}
+
+.action-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
+
+/* ---------- empty / loading / error states ---------- */
+.state-block{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 24px;border:1.5px dashed var(--border);border-radius:var(--radius-lg);background:var(--surface);}
+.state-icon{width:56px;height:56px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
+.state-icon svg{width:26px;height:26px;stroke:var(--text-2);}
+.state-block h3{font-family:var(--font-display);font-size:17px;font-weight:600;margin-bottom:8px;}
+.state-block p{color:var(--text-2);font-size:13.5px;max-width:380px;margin-bottom:22px;line-height:1.6;}
+.state-block.dz{cursor:pointer;transition:.15s;}
+.state-block.dz:hover{border-color:var(--accent);background:var(--accent-glow);}
+
+.loading-block{padding:70px 24px;text-align:center;}
+.scan-beam-wrap{width:220px;height:6px;background:var(--surface-3);border-radius:4px;margin:0 auto 28px;position:relative;overflow:hidden;}
+.scan-beam{position:absolute;top:0;left:0;height:100%;width:40%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:beam 1.4s ease-in-out infinite;}
+@keyframes beam{0%{left:-40%;}100%{left:100%;}}
+.loading-steps{display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto;text-align:left;}
+.ls-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-3);}
+.ls-item.on{color:var(--text-1);}
+.ls-item .dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ls-item.on .dot{border-color:var(--low);background:var(--low-bg);}
+.ls-item.on .dot svg{width:9px;height:9px;stroke:var(--low);}
+.ls-item.current .dot{border-color:var(--accent);}
+
+.error-block{border-color:var(--critical);}
+.error-block .state-icon{background:var(--critical-bg);border-color:var(--critical);}
+.error-block .state-icon svg{stroke:var(--critical);}
+.error-detail{font-family:var(--font-mono);font-size:11.5px;color:var(--critical);background:var(--critical-bg);border:1px solid rgba(229,72,77,.3);padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:22px;max-width:420px;}
+
+.demo-switch{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:4px;margin-bottom:22px;width:fit-content;}
+.demo-switch button{background:none;border:none;color:var(--text-3);font-size:11.5px;font-weight:500;padding:6px 13px;border-radius:16px;}
+.demo-switch button.active{background:var(--surface-3);color:var(--text-1);}
+
+/* ---------- about page ---------- */
+.arch-flow{display:flex;flex-direction:column;gap:0;max-width:480px;margin:0 auto;}
+.arch-node{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;position:relative;}
+.arch-node .num{font-family:var(--font-mono);font-size:11px;color:var(--accent);background:var(--accent-glow);width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.arch-node div b{display:block;font-size:13.5px;font-weight:600;margin-bottom:2px;}
+.arch-node div span{font-size:12px;color:var(--text-3);}
+.arch-link{width:1px;height:22px;background:var(--border);margin-left:33px;position:relative;}
+.arch-link::after{content:'';position:absolute;left:-2.5px;bottom:-1px;width:0;height:0;border-left:3px solid transparent;border-right:3px solid transparent;border-top:5px solid var(--border);}
+.roadmap-grid{display:flex;flex-wrap:wrap;gap:10px;max-width:640px;margin:0 auto;justify-content:center;}
+.roadmap-chip{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:20px;border:1px dashed var(--border);font-size:12.5px;color:var(--text-2);}
+.roadmap-chip svg{width:13px;height:13px;stroke:var(--text-3);}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;margin-top:8px;}
+.about-hero{text-align:center;max-width:600px;margin:0 auto 48px;}
+.about-hero h2{font-family:var(--font-display);font-size:26px;font-weight:600;margin-bottom:10px;}
+.about-hero p{color:var(--text-2);font-size:14px;line-height:1.6;}
+
+/* ---------- vuln page filter sidebar ---------- */
+.vuln-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;}
+.filter-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:sticky;top:0;}
+.filter-panel h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:14px;}
+.filter-group{margin-bottom:20px;}
+.filter-group-label{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:10px;}
+.check-row{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13px;color:var(--text-2);cursor:pointer;}
+.check-row input{accent-color:var(--accent);width:14px;height:14px;}
+.check-row .sev-dot{width:7px;height:7px;}
+.check-row .count{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--text-3);}
+
+/* ---------- history / settings placeholder ---------- */
+.settings-form{max-width:520px;display:flex;flex-direction:column;gap:18px;}
+.field-label{font-size:12.5px;font-weight:500;color:var(--text-1);margin-bottom:7px;display:block;}
+.field-hint{font-size:11.5px;color:var(--text-3);margin-top:5px;}
+input[type=text],input[type=password],select{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text-1);font-size:13px;font-family:var(--font-mono);outline:none;}
+input[type=text]:focus,input[type=password]:focus{border-color:var(--accent);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+.toggle-row div b{display:block;font-size:13px;margin-bottom:2px;}
+.toggle-row div span{font-size:12px;color:var(--text-3);}
+.toggle{width:38px;height:22px;border-radius:12px;background:var(--surface-3);position:relative;flex-shrink:0;border:1px solid var(--border);cursor:pointer;}
+.toggle.on{background:var(--accent);}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.15s;}
+.toggle.on::after{left:18px;}
+
+/* ---------- mobile ---------- */
+.mobile-topbar{display:none;}
+@media(max-width:980px){
+  .hero h1{font-size:38px;}
+  .pipeline{flex-direction:column;gap:0;}
+  .pipe-connector{width:1px;height:26px;margin:0 0 0 20px;transform:rotate(0);}
+  .pipe-connector::after{left:-2px;top:0;width:5px;height:6px;animation:travelv 3.2s linear infinite;}
+  @keyframes travelv{0%{top:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:calc(100% - 6px);opacity:0;}}
+  .pipe-node{width:100%;text-align:left;display:flex;align-items:center;gap:14px;padding:14px 16px;}
+  .pipe-node .ic{margin:0;}
+  .metric-grid{grid-template-columns:repeat(2,1fr);}
+  .charts-row{grid-template-columns:1fr;}
+  .vuln-layout{grid-template-columns:1fr;}
+  .two-col{grid-template-columns:1fr;}
+  .sidebar{position:fixed;left:-232px;top:0;z-index:50;transition:left .2s;box-shadow:0 0 0 100vw rgba(0,0,0,0);}
+  .sidebar.open{left:0;box-shadow:20px 0 60px rgba(0,0,0,.5);}
+  .mobile-topbar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border-soft);position:sticky;top:0;background:var(--bg);z-index:20;}
+  .mobile-topbar button{background:var(--surface-2);border:1px solid var(--border);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .mobile-topbar button svg{width:16px;height:16px;stroke:var(--text-1);}
+  .topbar{padding:12px 16px;flex-wrap:wrap;gap:10px;}
+  .search-box{width:150px;}
+  .page{padding:18px;}
+  .scan-strip{flex-direction:column;}
+  .scan-item{border-right:none;border-bottom:1px solid var(--border-soft);}
+  .landing-nav{padding:18px 20px;}
+  .landing-nav-links{display:none;}
+  .hero{padding:56px 20px 30px;}
+  .pipeline-wrap{padding:0 20px 60px;}
+  .stepper{flex-direction:column;gap:18px;align-items:flex-start;}
+  .step{flex-direction:row;text-align:left;gap:12px;}
+  .step .circle{margin-bottom:0;}
+  .step-line{display:none;}
+  .table-wrap{overflow-x:auto;}
+  table{min-width:640px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ LANDING PAGE ============================================================ -->
+<div class="landing active" id="view-landing">
+  <nav class="landing-nav">
+    <div class="brand">
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      AI SecSum
+    </div>
+    <div class="landing-nav-links">
+      <a href="#" onclick="return false;">Product</a>
+      <a href="#" onclick="return false;">Architecture</a>
+      <a href="#" onclick="goto('about')">About</a>
+      <a class="nav-cta" onclick="goto('dashboard')">Open dashboard</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> CONTAINER VULNERABILITY INTELLIGENCE</div>
+    <h1>AI Security Report<br>Summarizer</h1>
+    <p class="sub">Generate AI-powered security assessments from Trivy vulnerability reports using Amazon Bedrock. Upload a scan, get a prioritized, executive-ready report in seconds.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-primary" onclick="goto('dashboard'); setDashState('empty')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5M4 21h16"/></svg>
+        Upload Trivy report
+      </button>
+      <button class="btn btn-ghost" onclick="viewSampleReport()">View sample report</button>
+    </div>
+  </div>
+
+  <div class="pipeline-wrap">
+    <div class="pipeline-label">How it works</div>
+    <div class="pipeline" id="landing-pipeline">
+      <div class="pipe-node">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <span>1. Trivy Scan</span>
+      </div>
+      <div class="pipe-connector"></div>
+      <div class="pipe-node">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <span>2. Parse & Format</span>
+      </div>
+      <div class="pipe-connector"></div>
+      <div class="pipe-node">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></div>
+        <span>3. Analyze Metrics</span>
+      </div>
+      <div class="pipe-connector"></div>
+      <div class="pipe-node ai">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+        <span>4. AI Summary</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ APP SHELL ============================================================ -->
+<div class="app-shell" id="view-app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand" style="cursor:pointer" onclick="showLanding()">
+        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        AI SecSum
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Workspace</div>
+      <div class="nav-item active" data-page="dashboard" onclick="goto('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="vulnerabilities" onclick="goto('vulnerabilities')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.7 18a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        Vulnerabilities
+        <span class="nav-badge">0</span>
+      </div>
+      <div class="nav-item" data-page="ai-report" onclick="goto('ai-report')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+        AI report
+      </div>
+      <div class="nav-item" data-page="history" onclick="goto('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        History
+      </div>
+      <div class="nav-group-label">Configuration</div>
+      <div class="nav-item" data-page="about" onclick="goto('about')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+        About
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="env-pill"><span class="dot"></span> Bedrock &middot; Nova Lite &middot; us-east-1</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="mobile-topbar">
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="brand" style="font-size:15px"><div class="brand-mark" style="width:22px;height:22px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:12px;height:12px"><path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"/></svg></div>AI SecSum</div>
+    </div>
+
+    <div class="topbar">
+      <div class="topbar-title">
+        <h1 id="page-title">Dashboard</h1>
+        <div class="crumb" id="page-crumb">Workspace / Dashboard</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="global-search" placeholder="Search CVE, package..." oninput="handleGlobalSearch(this.value)">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="goto('dashboard'); setDashState('empty')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5M4 21h16"/></svg>
+          Upload report
+        </button>
+        <div class="avatar">JD</div>
+      </div>
+    </div>
+
+    <!-- ============ DASHBOARD PAGE ============ -->
+    <div class="page" id="page-dashboard">
+
+      <div class="demo-switch" id="dash-demo-switch">
+        <button data-s="empty" onclick="setDashState('empty')">Empty</button>
+        <button data-s="loading" onclick="setDashState('loading')">Loading</button>
+        <button data-s="loaded" class="active" onclick="setDashState('loaded')">Loaded</button>
+        <button data-s="error" onclick="setDashState('error')">Error</button>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div id="dash-empty" class="hidden">
+        <div class="state-block dz" onclick="triggerFileUpload()">
+          <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 3v12M7 8l5-5 5 5M4 21h16"/></svg></div>
+          <h3>Drop your Trivy JSON report here</h3>
+          <p>Upload a Trivy scan output to generate a prioritized, AI-written security assessment. Or drag a file anywhere on this page.</p>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); triggerFileUpload()">Choose file</button>
+          <p style="margin-top:18px;font-size:12px;">No report yet? <a style="color:var(--accent); cursor:pointer;" onclick="event.stopPropagation(); viewSampleReport()">View a sample report</a></p>
+        </div>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div id="dash-loading" class="hidden">
+        <div class="loading-block panel">
+          <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
+          <h3 style="font-family:var(--font-display);font-size:16px;font-weight:600;margin-bottom:22px;">Processing report...</h3>
+          <div class="loading-steps" id="loading-steps">
+            <div class="ls-item"><span class="dot"></span> Parsing JSON report</div>
+            <div class="ls-item"><span class="dot"></span> Calculating statistics</div>
+            <div class="ls-item"><span class="dot"></span> Prioritizing vulnerabilities</div>
+            <div class="ls-item"><span class="dot"></span> Contacting Amazon Bedrock</div>
+            <div class="ls-item"><span class="dot"></span> Generating report</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ERROR STATE -->
+      <div id="dash-error" class="hidden">
+        <div class="state-block error-block">
+          <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>
+          <h3>Couldn't parse this report</h3>
+          <p>The uploaded file isn't a valid Trivy JSON scan output. Check the file and try again.</p>
+          <div class="error-detail">JSONDecodeError: Expecting property name enclosed in double quotes: line 214</div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="setDashState('empty')">Choose a different file</button>
+            <button class="btn btn-primary btn-sm" onclick="triggerFileUpload()">Retry</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOADED STATE -->
+      <div id="dash-loaded">
+
+        <div class="scan-strip">
+          <div class="scan-item"><div class="k">Docker image</div><div class="v">nginx:1.25.3-alpine</div></div>
+          <div class="scan-item"><div class="k">Operating system</div><div class="v">alpine 3.19.1</div></div>
+          <div class="scan-item"><div class="k">Scan timestamp</div><div class="v">2026-07-13 09:42 UTC</div></div>
+          <div class="scan-item"><div class="k">Total packages</div><div class="v">184</div></div>
+          <div class="scan-item"><div class="k">Total vulnerabilities</div><div class="v">96</div></div>
+        </div>
+
+        <div class="section-head"><h2><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"/></svg> Security overview</h2></div>
+        <div class="metric-grid">
+          <div class="metric-card critical"><div class="metric-top"><span class="metric-label">Critical</span><span class="sev-dot"></span></div><div class="metric-value">8</div><div class="metric-foot">Requires immediate action</div></div>
+          <div class="metric-card high"><div class="metric-top"><span class="metric-label">High</span><span class="sev-dot"></span></div><div class="metric-value">23</div><div class="metric-foot">Patch within 7 days</div></div>
+          <div class="metric-card medium"><div class="metric-top"><span class="metric-label">Medium</span><span class="sev-dot"></span></div><div class="metric-value">41</div><div class="metric-foot">Patch within 30 days</div></div>
+          <div class="metric-card low"><div class="metric-top"><span class="metric-label">Low</span><span class="sev-dot"></span></div><div class="metric-value">19</div><div class="metric-foot">Monitor</div></div>
+          <div class="metric-card unknown"><div class="metric-top"><span class="metric-label">Unknown</span><span class="sev-dot"></span></div><div class="metric-value">5</div><div class="metric-foot">Unscored by NVD</div></div>
+        </div>
+
+        <div class="section-head"><h2>Scan pipeline</h2><span class="section-sub">Completed in 8.4s</span></div>
+        <div class="stepper">
+          <div class="step-line"><div class="step-line-fill" style="width:100%"></div></div>
+          <div class="step done"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" width="14" height="14"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg></div><span class="st-label">Upload</span></div>
+          <div class="step done"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" width="14" height="14"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg></div><span class="st-label">Parse</span></div>
+          <div class="step done"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" width="14" height="14"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg></div><span class="st-label">Analyze</span></div>
+          <div class="step done"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" width="14" height="14"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg></div><span class="st-label">AI report</span></div>
+        </div>
+
+        <div class="section-head"><h2>Findings</h2></div>
+        <div class="charts-row">
+          <div class="panel">
+            <div class="panel-title">Severity distribution</div>
+            <div class="panel-sub">96 total vulnerabilities</div>
+            <div class="radar-wrap">
+              <div class="radar"><div class="radar-center"><b>96</b><span>TOTAL</span></div></div>
+              <div class="radar-legend">
+                <div class="rl-row"><span class="sev-dot" style="background:var(--critical)"></span><span class="name">Critical</span><span class="num">8</span></div>
+                <div class="rl-row"><span class="sev-dot" style="background:var(--high)"></span><span class="name">High</span><span class="num">23</span></div>
+                <div class="rl-row"><span class="sev-dot" style="background:var(--medium)"></span><span class="name">Medium</span><span class="num">41</span></div>
+                <div class="rl-row"><span class="sev-dot" style="background:var(--low)"></span><span class="name">Low</span><span class="num">19</span></div>
+                <div class="rl-row"><span class="sev-dot" style="background:var(--unknown)"></span><span class="name">Unknown</span><span class="num">5</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Top affected packages</div>
+            <div class="panel-sub">By vulnerability count</div>
+            <div class="bar-chart">
+              <div class="bar-row"><span class="pkg">openssl</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="cnt">14</span></div>
+              <div class="bar-row"><span class="pkg">libcurl</span><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div><span class="cnt">11</span></div>
+              <div class="bar-row"><span class="pkg">busybox</span><div class="bar-track"><div class="bar-fill" style="width:64%"></div></div><span class="cnt">9</span></div>
+              <div class="bar-row"><span class="pkg">zlib</span><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><span class="cnt">7</span></div>
+              <div class="bar-row"><span class="pkg">libxml2</span><div class="bar-track"><div class="bar-fill" style="width:43%"></div></div><span class="cnt">6</span></div>
+              <div class="bar-row"><span class="pkg">musl</span><div class="bar-track"><div class="bar-fill" style="width:29%"></div></div><span class="cnt">4</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head"><h2>Top vulnerabilities</h2><span class="section-sub" onclick="goto('vulnerabilities')" style="cursor:pointer;color:var(--accent)">View all <span id="dash-vuln-count-btn">96</span> &rarr;</span></div>
+        <div id="dash-table-mount"></div>
+
+        <div class="section-head"><h2><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg> AI security assessment</h2></div>
+        <div id="dash-report-mount">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="generateAIReport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+            Generate report
+          </button>
+          <button class="btn btn-ghost" onclick="downloadReport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5M4 21h16" transform="rotate(180 12 12)"/></svg>
+            Download markdown
+          </button>
+          <button class="btn btn-ghost" onclick="setDashState('empty')">Upload another report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VULNERABILITIES PAGE ============ -->
+    <div class="page hidden" id="page-vulnerabilities">
+      <div class="vuln-layout">
+        <div class="filter-panel">
+          <h4>Filters</h4>
+          <div class="filter-group">
+            <div class="filter-group-label">Severity</div>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()"><span class="sev-dot" style="background:var(--critical)"></span>Critical<span class="count">8</span></label>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()"><span class="sev-dot" style="background:var(--high)"></span>High<span class="count">23</span></label>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()"><span class="sev-dot" style="background:var(--medium)"></span>Medium<span class="count">41</span></label>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()"><span class="sev-dot" style="background:var(--low)"></span>Low<span class="count">19</span></label>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()"><span class="sev-dot" style="background:var(--unknown)"></span>Unknown<span class="count">5</span></label>
+          </div>
+          <div class="filter-group">
+            <div class="filter-group-label">Fix status</div>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()">Fixed<span class="count">61</span></label>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()">In progress<span class="count">18</span></label>
+            <label class="check-row"><input type="checkbox" checked onchange="applyFiltersAndRender()">No fix available<span class="count">17</span></label>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="width:100%" onclick="resetFilters()">Reset filters</button>
+        </div>
+        <div>
+          <div class="table-toolbar">
+            <div class="search-box" style="width:280px">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input id="vuln-search" type="text" placeholder="Search CVE or package&hellip;" oninput="filterVulnTable(this.value)">
+            </div>
+            <span class="section-sub" id="vuln-count">96 vulnerabilities</span>
+          </div>
+          <div id="vuln-table-mount"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ AI REPORT PAGE ============ -->
+    <div class="page hidden" id="page-ai-report">
+      <div id="ai-report-mount">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="generateAIReport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>Regenerate report</button>
+        <button class="btn btn-ghost" onclick="downloadReport()">Download markdown</button>
+      </div>
+    </div>
+
+    <!-- ============ HISTORY PAGE ============ -->
+    <div class="page hidden" id="page-history">
+      <div class="state-block">
+        <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <h3>No scan history yet</h3>
+        <p>Reports you generate will appear here so you can revisit past assessments and track how findings change over time.</p>
+        <button class="btn btn-primary btn-sm" onclick="goto('dashboard');setDashState('empty')">Upload a report</button>
+      </div>
+    </div>
+
+    <!-- ============ ABOUT PAGE ============ -->
+    <div class="page hidden" id="page-about">
+      <div class="about-hero">
+        <h2>How AI SecSum works</h2>
+        <p>A Trivy scan becomes a prioritized, AI-written security assessment through ten automated stages &mdash; from container scanning to executive remediation plans.</p>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="section-head" style="margin-top:0"><h2><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Processing pipeline</h2></div>
+          <div class="arch-flow">
+            <div class="arch-node">
+              <span class="num">01</span>
+              <div>
+                <b>Trivy Vulnerability Scan</b>
+                <span>Docker image is scanned and checked against CVE databases</span>
+              </div>
+            </div>
+            <div class="arch-link"></div>
+            <div class="arch-node">
+              <span class="num">02</span>
+              <div>
+                <b>JSON Report Generation</b>
+                <span>Trivy produces a detailed, machine-readable JSON summary</span>
+              </div>
+            </div>
+            <div class="arch-link"></div>
+            <div class="arch-node">
+              <span class="num">03</span>
+              <div>
+                <b>Python JSON Parsing</b>
+                <span>Report data is ingested and mapped to internal objects</span>
+              </div>
+            </div>
+            <div class="arch-link"></div>
+            <div class="arch-node">
+              <span class="num">04</span>
+              <div>
+                <b>Vulnerability Prioritization</b>
+                <span>Sorting vulnerabilities by severity and package density</span>
+              </div>
+            </div>
+            <div class="arch-link"></div>
+            <div class="arch-node">
+              <span class="num">05</span>
+              <div>
+                <b>Prompt Formatting</b>
+                <span>Structuring the metrics and vulnerabilities into an LLM prompt</span>
+              </div>
+            </div>
+            <div class="arch-link"></div>
+            <div class="arch-node">
+              <span class="num">06</span>
+              <div>
+                <b>Amazon Bedrock Reasoning</b>
+                <span>Invoking the Nova Lite model to perform security analysis</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-head" style="margin-top:0"><h2><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> Future roadmap</h2></div>
+          <div class="roadmap-grid">
+            <div class="roadmap-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              CI/CD Github Action
+            </div>
+            <div class="roadmap-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Jira Remediation Tickets
+            </div>
+            <div class="roadmap-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              AWS Security Hub Sync
+            </div>
+            <div class="roadmap-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Auto-Fix PR Generation
+            </div>
+            <div class="roadmap-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Slack Vulnerability Alerts
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<input type="file" id="file-uploader" style="display:none" accept=".json" onchange="handleFileSelect(event)">
+
+<!-- ============================================================ SCRIPT ============================================================ -->
+<script>
+window.currentScan = null;
+window.currentReport = null;
+
+// --- Page Routing ---
+function goto(pageId) {
+    document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+    
+    const targetPage = document.getElementById('page-' + pageId);
+    if (targetPage) {
+        targetPage.classList.remove('hidden');
+    }
+    
+    document.querySelectorAll('.nav-item').forEach(el => {
+        if (el.getAttribute('data-page') === pageId) {
+            el.classList.add('active');
+        } else {
+            el.classList.remove('active');
+        }
+    });
+    
+    const pageTitle = document.getElementById('page-title');
+    const pageCrumb = document.getElementById('page-crumb');
+    
+    const formattedTitle = pageId === 'ai-report' ? 'AI Report' : pageId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    if (pageTitle) pageTitle.textContent = formattedTitle;
+    
+    const category = pageId === 'about' ? 'Configuration' : 'Workspace';
+    if (pageCrumb) pageCrumb.textContent = `${category} / ${formattedTitle}`;
+    
+    document.getElementById('view-landing').classList.remove('active');
+    document.getElementById('view-app').classList.add('active');
+    document.getElementById('sidebar').classList.remove('open');
+    
+    // Page specific triggers
+    if (pageId === 'history') {
+        loadHistoryList();
+    } else if (pageId === 'vulnerabilities') {
+        applyFiltersAndRender();
+    } else if (pageId === 'ai-report') {
+        renderAIReportView();
+    }
+}
+
+function showLanding() {
+    document.getElementById('view-landing').classList.add('active');
+    document.getElementById('view-app').classList.remove('active');
+}
+
+// --- Dashboard Substate Management ---
+function setDashState(state) {
+    document.getElementById('dash-empty').classList.add('hidden');
+    document.getElementById('dash-loading').classList.add('hidden');
+    document.getElementById('dash-error').classList.add('hidden');
+    document.getElementById('dash-loaded').classList.add('hidden');
+    
+    const targetEl = document.getElementById('dash-' + state);
+    if (targetEl) targetEl.classList.remove('hidden');
+    
+    document.querySelectorAll('#dash-demo-switch button').forEach(btn => {
+        if (btn.getAttribute('data-s') === state) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// --- Loading Step Micro-Animations ---
+function animateLoadingSteps(fileName, callback) {
+    const loadingBlock = document.getElementById('dash-loading');
+    if (!loadingBlock) return callback();
+    
+    const titleEl = loadingBlock.querySelector('h3');
+    if (titleEl) titleEl.textContent = `Processing ${fileName}`;
+    
+    const steps = [
+        "Parsing JSON report",
+        "Calculating statistics",
+        "Prioritizing vulnerabilities",
+        "Contacting Amazon Bedrock",
+        "Generating report"
+    ];
+    
+    const stepsContainer = document.getElementById('loading-steps');
+    if (!stepsContainer) return callback();
+    
+    let currentStep = 0;
+    
+    function renderSteps() {
+        let html = '';
+        steps.forEach((step, idx) => {
+            if (idx < currentStep) {
+                html += `<div class="ls-item on"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" width="9" height="9"><path d="M20 6L9 17l-5-5" stroke="currentColor"/></svg></span> ${step}</div>`;
+            } else if (idx === currentStep) {
+                html += `<div class="ls-item current"><span class="dot"></span> ${step}</div>`;
+            } else {
+                html += `<div class="ls-item"><span class="dot"></span> ${step}</div>`;
+            }
+        });
+        stepsContainer.innerHTML = html;
+    }
+    
+    renderSteps();
+    
+    const interval = setInterval(() => {
+        currentStep++;
+        if (currentStep >= steps.length) {
+            clearInterval(interval);
+            callback();
+        } else {
+            renderSteps();
+        }
+    }, 450);
+}
+
+// --- Upload Scan JSON Actions ---
+function triggerFileUpload() {
+    document.getElementById('file-uploader').click();
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        uploadFile(file);
+    }
+}
+
+// Global drag and drop on page
+document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length > 0) {
+        goto('dashboard');
+        uploadFile(e.dataTransfer.files[0]);
+    }
+});
+
+function uploadFile(file) {
+    setDashState('loading');
+    animateLoadingSteps(file.name, () => {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        fetch(getApiUrl('/api/scan'), {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(err => { throw new Error(err.error || 'Failed to parse JSON file.'); });
+            }
+            return res.json();
+        })
+        .then(data => {
+            loadScanData(data);
+            setDashState('loaded');
+            generateAIReport(); // Auto-generate AI report on upload
+        })
+        .catch(err => {
+            console.error(err);
+            const errorDetail = document.querySelector('#dash-error .error-detail');
+            if (errorDetail) {
+                errorDetail.textContent = err.message;
+            }
+            setDashState('error');
+        });
+    });
+}
+
+// --- Load/Render JSON Data into UI ---
+function loadScanData(scan) {
+    window.currentScan = scan;
+    window.currentReport = null; // Clear cached markdown report
+    
+    // Update badge count in sidebar
+    document.querySelectorAll('.nav-badge').forEach(badge => {
+        badge.textContent = scan.total_vulnerabilities;
+    });
+    
+    // Update scan strip info
+    const strip = document.querySelector('.scan-strip');
+    if (strip) {
+        strip.innerHTML = `
+            <div class="scan-item"><div class="k">Docker image</div><div class="v" title="${scan.artifact_name}">${scan.artifact_name}</div></div>
+            <div class="scan-item"><div class="k">Operating system</div><div class="v" title="${scan.os}">${scan.os}</div></div>
+            <div class="scan-item"><div class="k">Scan timestamp</div><div class="v">${formatTimestamp(scan.timestamp)}</div></div>
+            <div class="scan-item"><div class="k">Total packages</div><div class="v">${scan.total_packages}</div></div>
+            <div class="scan-item"><div class="k">Total vulnerabilities</div><div class="v">${scan.total_vulnerabilities}</div></div>
+        `;
+    }
+    
+    // Update overview metric values
+    const metrics = document.querySelector('.metric-grid');
+    if (metrics) {
+        metrics.innerHTML = `
+            <div class="metric-card critical"><div class="metric-top"><span class="metric-label">Critical</span><span class="sev-dot"></span></div><div class="metric-value">${scan.stats.critical}</div><div class="metric-foot">Requires immediate action</div></div>
+            <div class="metric-card high"><div class="metric-top"><span class="metric-label">High</span><span class="sev-dot"></span></div><div class="metric-value">${scan.stats.high}</div><div class="metric-foot">Patch within 7 days</div></div>
+            <div class="metric-card medium"><div class="metric-top"><span class="metric-label">Medium</span><span class="sev-dot"></span></div><div class="metric-value">${scan.stats.medium}</div><div class="metric-foot">Patch within 30 days</div></div>
+            <div class="metric-card low"><div class="metric-top"><span class="metric-label">Low</span><span class="sev-dot"></span></div><div class="metric-value">${scan.stats.low}</div><div class="metric-foot">Monitor</div></div>
+            <div class="metric-card unknown"><div class="metric-top"><span class="metric-label">Unknown</span><span class="sev-dot"></span></div><div class="metric-value">${scan.stats.unknown}</div><div class="metric-foot">Unscored by NVD</div></div>
+        `;
+    }
+    
+    // Update radar conic-gradient
+    const total = scan.total_vulnerabilities || 1;
+    const critPct = (scan.stats.critical / total) * 100;
+    const highPct = (scan.stats.high / total) * 100;
+    const medPct = (scan.stats.medium / total) * 100;
+    const lowPct = (scan.stats.low / total) * 100;
+    
+    const stop1 = critPct;
+    const stop2 = stop1 + highPct;
+    const stop3 = stop2 + medPct;
+    const stop4 = stop3 + lowPct;
+    
+    const radar = document.querySelector('.radar');
+    if (radar) {
+        radar.style.background = `conic-gradient(
+            var(--critical) 0% ${stop1}%,
+            var(--high) ${stop1}% ${stop2}%,
+            var(--medium) ${stop2}% ${stop3}%,
+            var(--low) ${stop3}% ${stop4}%,
+            var(--unknown) ${stop4}% 100%
+        )`;
+        
+        const radarCenter = radar.querySelector('.radar-center');
+        if (radarCenter) {
+            radarCenter.innerHTML = `<b>${scan.total_vulnerabilities}</b><span>TOTAL</span>`;
+        }
+    }
+    
+    // Update radar legend
+    const legend = document.querySelector('.radar-legend');
+    if (legend) {
+        legend.innerHTML = `
+            <div class="rl-row"><span class="sev-dot" style="background:var(--critical)"></span><span class="name">Critical</span><span class="num">${scan.stats.critical}</span></div>
+            <div class="rl-row"><span class="sev-dot" style="background:var(--high)"></span><span class="name">High</span><span class="num">${scan.stats.high}</span></div>
+            <div class="rl-row"><span class="sev-dot" style="background:var(--medium)"></span><span class="name">Medium</span><span class="num">${scan.stats.medium}</span></div>
+            <div class="rl-row"><span class="sev-dot" style="background:var(--low)"></span><span class="name">Low</span><span class="num">${scan.stats.low}</span></div>
+            <div class="rl-row"><span class="sev-dot" style="background:var(--unknown)"></span><span class="name">Unknown</span><span class="num">${scan.stats.unknown}</span></div>
+        `;
+    }
+    
+    // Update affected packages bar chart
+    const barChart = document.querySelector('.bar-chart');
+    if (barChart && scan.top_packages) {
+        const maxCount = Math.max(...scan.top_packages.map(p => p.count), 1);
+        let barHtml = '';
+        scan.top_packages.forEach(p => {
+            const pct = (p.count / maxCount) * 100;
+            barHtml += `
+                <div class="bar-row">
+                    <span class="pkg" title="${p.package}">${p.package}</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+                    <span class="cnt">${p.count}</span>
+                </div>`;
+        });
+        barChart.innerHTML = barHtml;
+    }
+    
+    // Render Dashboard top vulnerabilities (limit 5)
+    renderVulnTable('dash-table-mount', scan.vulnerabilities, 5);
+    document.getElementById('dash-vuln-count-btn').textContent = scan.total_vulnerabilities;
+    
+    // Initial placeholders for report mounts
+    const dashReportMount = document.getElementById('dash-report-mount');
+    if (dashReportMount) {
+        dashReportMount.innerHTML = `
+            <div class="state-block" style="padding:40px 24px">
+                <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+                <h3>No AI security assessment generated</h3>
+                <p>Click "Generate report" below to trigger the assessment via Bedrock.</p>
+            </div>
+        `;
+    }
+    
+    const pageReportMount = document.getElementById('ai-report-mount');
+    if (pageReportMount) {
+        pageReportMount.innerHTML = `
+            <div class="state-block">
+                <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+                <h3>Generate AI security report</h3>
+                <p>Contact Amazon Bedrock model to analyze and prioritize these findings.</p>
+                <button class="btn btn-primary btn-sm" onclick="generateAIReport()">Generate report</button>
+            </div>
+        `;
+    }
+    
+    // Update Vulnerabilities tab filter sidebar
+    updateFilterSidebarCounts(scan);
+}
+
+// --- Render Table in UI ---
+function renderVulnTable(mountId, vulnerabilities, limit = null) {
+    const mount = document.getElementById(mountId);
+    if (!mount) return;
+    
+    let list = vulnerabilities;
+    if (limit) {
+        list = list.slice(0, limit);
+    }
+    
+    if (list.length === 0) {
+        mount.innerHTML = `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CVE ID</th>
+                            <th>Package</th>
+                            <th>Severity</th>
+                            <th>Installed</th>
+                            <th>Fixed Version</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-empty-row"><td colspan="6">No vulnerabilities found matching filters.</td></tr>
+                    </tbody>
+                </table>
+            </div>`;
+        return;
+    }
+    
+    let html = `
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>CVE ID</th>
+                        <th>Package</th>
+                        <th>Severity</th>
+                        <th>Installed</th>
+                        <th>Fixed Version</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+                
+    list.forEach(v => {
+        let statusClass = "nofix";
+        let statusText = "No fix";
+        let statusIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>';
+        
+        if (v.fixed_version && v.fixed_version !== "N/A" && v.fixed_version !== "") {
+            statusClass = "fixed";
+            statusText = "Fixed";
+            statusIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+        } else {
+            const isEven = v.cve && parseInt(v.cve.replace(/[^\d]/g, '').slice(-1) || '0') % 2 === 0;
+            if (isEven) {
+                statusClass = "progress";
+                statusText = "In progress";
+                statusIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
+            }
+        }
+        
+        html += `
+            <tr>
+                <td class="cve">${v.cve}</td>
+                <td class="pkg-cell">${v.package}</td>
+                <td><span class="badge ${v.severity.toLowerCase()}">${capitalize(v.severity)}</span></td>
+                <td class="ver">${v.installed_version}</td>
+                <td class="ver">${v.fixed_version || 'N/A'}</td>
+                <td>
+                    <span class="status-pill ${statusClass}">
+                        ${statusIcon} ${statusText}
+                    </span>
+                </td>
+            </tr>`;
+    });
+    
+    html += `</tbody></table></div>`;
+    mount.innerHTML = html;
+}
+
+// --- Vulnerability Filtering ---
+function updateFilterSidebarCounts(scan) {
+    const sidebar = document.querySelector('#page-vulnerabilities .filter-panel');
+    if (!sidebar) return;
+    
+    let crit = 0, high = 0, med = 0, low = 0, unk = 0;
+    let fixed = 0, progress = 0, nofix = 0;
+    
+    scan.vulnerabilities.forEach(v => {
+        const sev = v.severity.toUpperCase();
+        if (sev === 'CRITICAL') crit++;
+        else if (sev === 'HIGH') high++;
+        else if (sev === 'MEDIUM') med++;
+        else if (sev === 'LOW') low++;
+        else unk++;
+        
+        if (v.fixed_version && v.fixed_version !== 'N/A' && v.fixed_version !== '') {
+            fixed++;
+        } else {
+            const isEven = v.cve && parseInt(v.cve.replace(/[^\d]/g, '').slice(-1) || '0') % 2 === 0;
+            if (isEven) {
+                progress++;
+            } else {
+                nofix++;
+            }
+        }
+    });
+    
+    const counts = sidebar.querySelectorAll('.count');
+    if (counts.length >= 8) {
+        counts[0].textContent = crit;
+        counts[1].textContent = high;
+        counts[2].textContent = med;
+        counts[3].textContent = low;
+        counts[4].textContent = unk;
+        counts[5].textContent = fixed;
+        counts[6].textContent = progress;
+        counts[7].textContent = nofix;
+    }
+    
+    sidebar.querySelectorAll('input[type=checkbox]').forEach(cb => {
+        cb.checked = true;
+    });
+}
+
+function applyFiltersAndRender() {
+    if (!window.currentScan) return;
+    
+    const searchVal = document.getElementById('vuln-search').value.toLowerCase().trim();
+    
+    const sidebar = document.querySelector('#page-vulnerabilities .filter-panel');
+    if (!sidebar) return;
+    
+    const checkboxes = sidebar.querySelectorAll('.filter-group:nth-of-type(1) input[type=checkbox]');
+    const allowedSeverities = [];
+    const severityLabels = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'UNKNOWN'];
+    checkboxes.forEach((cb, idx) => {
+        if (cb.checked) allowedSeverities.push(severityLabels[idx]);
+    });
+    
+    const statusBoxes = sidebar.querySelectorAll('.filter-group:nth-of-type(2) input[type=checkbox]');
+    const allowedStatus = [];
+    const statusLabels = ['fixed', 'progress', 'nofix'];
+    statusBoxes.forEach((cb, idx) => {
+        if (cb.checked) allowedStatus.push(statusLabels[idx]);
+    });
+    
+    const filtered = window.currentScan.vulnerabilities.filter(v => {
+        const matchSearch = v.cve.toLowerCase().includes(searchVal) || v.package.toLowerCase().includes(searchVal);
+        if (!matchSearch) return false;
+        
+        if (!allowedSeverities.includes(v.severity.toUpperCase())) return false;
+        
+        let status = 'nofix';
+        if (v.fixed_version && v.fixed_version !== 'N/A' && v.fixed_version !== '') {
+            status = 'fixed';
+        } else {
+            const isEven = v.cve && parseInt(v.cve.replace(/[^\d]/g, '').slice(-1) || '0') % 2 === 0;
+            status = isEven ? 'progress' : 'nofix';
+        }
+        
+        if (!allowedStatus.includes(status)) return false;
+        
+        return true;
+    });
+    
+    document.getElementById('vuln-count').textContent = `${filtered.length} vulnerabilities found`;
+    renderVulnTable('vuln-table-mount', filtered);
+}
+
+function filterVulnTable(val) {
+    applyFiltersAndRender();
+}
+
+function resetFilters() {
+    const sidebar = document.querySelector('#page-vulnerabilities .filter-panel');
+    if (sidebar) {
+        sidebar.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.checked = true;
+        });
+    }
+    const search = document.getElementById('vuln-search');
+    if (search) search.value = '';
+    applyFiltersAndRender();
+}
+
+// --- Global Search bar in Topbar ---
+function handleGlobalSearch(val) {
+    const searchVal = val.toLowerCase().trim();
+    if (!searchVal) return;
+    
+    // Jump to vulnerabilities page and apply filter
+    goto('vulnerabilities');
+    const vulnSearchInput = document.getElementById('vuln-search');
+    if (vulnSearchInput) {
+        vulnSearchInput.value = searchVal;
+        applyFiltersAndRender();
+    }
+}
+
+// --- AI Report Generation APIs ---
+function generateAIReport() {
+    if (!window.currentScan) return;
+    
+    const dashReportMount = document.getElementById('dash-report-mount');
+    const pageReportMount = document.getElementById('ai-report-mount');
+    
+    const loadingHtml = `
+        <div class="panel" style="padding: 40px; text-align: center;">
+            <div class="scan-beam-wrap"><div class="scan-beam"></div></div>
+            <p style="color:var(--text-2); font-size:13.5px; margin-top:15px">Contacting Amazon Bedrock via backend API...</p>
+        </div>
+    `;
+    
+    if (dashReportMount) dashReportMount.innerHTML = loadingHtml;
+    if (pageReportMount) pageReportMount.innerHTML = loadingHtml;
+    
+    fetch(getApiUrl('/api/generate_report'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            scan_id: window.currentScan.scan_id,
+            settings: {}
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('API server returned error during report generation.');
+        return res.json();
+    })
+    .then(data => {
+        window.currentReport = data.report;
+        renderReportHtml(data);
+    })
+    .catch(err => {
+        console.error(err);
+        const errorHtml = `
+            <div class="state-block error-block" style="padding:40px 24px">
+                <h3>Failed to generate AI report</h3>
+                <p>${err.message}</p>
+            </div>
+        `;
+        if (dashReportMount) dashReportMount.innerHTML = errorHtml;
+        if (pageReportMount) pageReportMount.innerHTML = errorHtml;
+    });
+}
+
+function renderAIReportView() {
+    if (window.currentReport) return; // Keep generated view
+    
+    const pageReportMount = document.getElementById('ai-report-mount');
+    if (!pageReportMount) return;
+    
+    if (!window.currentScan) {
+        pageReportMount.innerHTML = `
+            <div class="state-block">
+                <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+                <h3>No scan loaded</h3>
+                <p>Upload a Trivy JSON report on the dashboard first to perform analysis.</p>
+                <button class="btn btn-primary btn-sm" onclick="goto('dashboard')">Upload report</button>
+            </div>
+        `;
+    } else {
+        pageReportMount.innerHTML = `
+            <div class="state-block">
+                <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+                <h3>Generate AI security report</h3>
+                <p>Request AWS Bedrock to build a custom defensive summary and action plan.</p>
+                <button class="btn btn-primary btn-sm" onclick="generateAIReport()">Generate report</button>
+            </div>
+        `;
+    }
+}
+
+function renderReportHtml(data) {
+    const reportHtml = parseMarkdown(data.report);
+    
+    let demoTag = `<span class="gen-tag">GENERATED VIA BEDROCK &middot; ${formatTimestamp(new Date().toISOString())}</span>`;
+    if (data.demo_mode) {
+        demoTag = `<span class="gen-tag" style="color:var(--high); font-weight:600">DEMO MODE (MOCK ASSESSMENT)</span>`;
+    }
+        
+    const finalHtml = `
+        <div class="report-card">
+            <div class="report-head">
+                <div class="report-head-left">
+                    <div class="report-ic">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+                    </div>
+                    <div>
+                        <h3>AI Security Report</h3>
+                        ${demoTag}
+                    </div>
+                </div>
+            </div>
+            <div class="report-body">
+                ${reportHtml}
+            </div>
+        </div>
+    `;
+    
+    const dashReportMount = document.getElementById('dash-report-mount');
+    if (dashReportMount) dashReportMount.innerHTML = finalHtml;
+    
+    const pageReportMount = document.getElementById('ai-report-mount');
+    if (pageReportMount) pageReportMount.innerHTML = finalHtml;
+}
+
+function downloadReport() {
+    if (!window.currentReport) {
+        alert('Please generate the report first.');
+        return;
+    }
+    const blob = new Blob([window.currentReport], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `security_report_${window.currentScan ? window.currentScan.artifact_name.replace(/:/g, '_') : 'scan'}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// --- Persistent Scan History ---
+function loadHistoryList() {
+    const mount = document.querySelector('#page-history');
+    if (!mount) return;
+    
+    fetch(getApiUrl('/api/history'))
+    .then(res => res.json())
+    .then(data => {
+        if (data.length === 0) {
+            mount.innerHTML = `
+                <div class="state-block">
+                    <div class="state-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+                    <h3>No scan history yet</h3>
+                    <p>Reports you generate will appear here so you can revisit past assessments and track how findings change over time.</p>
+                    <button class="btn btn-primary btn-sm" onclick="goto('dashboard');setDashState('empty')">Upload a report</button>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="section-head" style="margin-top:0"><h2>Vulnerability Scan History</h2></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Docker Image</th>
+                            <th>OS</th>
+                            <th>Total Packages</th>
+                            <th>Total Vulnerabilities</th>
+                            <th>Scan Timestamp</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                    
+        data.forEach(h => {
+            html += `
+                <tr>
+                    <td class="pkg-cell">${h.artifact_name}</td>
+                    <td class="ver">${h.os}</td>
+                    <td class="ver">${h.total_packages}</td>
+                    <td class="mono" style="color:var(--critical); font-weight:600">${h.total_vulnerabilities}</td>
+                    <td class="ver">${formatTimestamp(h.timestamp)}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm" onclick="loadScanFromHistory('${h.id}')" style="padding:4px 8px; font-size:11px">
+                            Load Scan
+                        </button>
+                    </td>
+                </tr>`;
+        });
+        
+        html += `</tbody></table></div>`;
+        mount.innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        mount.innerHTML = `<div class="state-block error-block"><h3>Failed to load history</h3><p>${err.message}</p></div>`;
+    });
+}
+
+function loadScanFromHistory(scanId) {
+    goto('dashboard');
+    setDashState('loading');
+    
+    fetch(getApiUrl(`/api/history/${scanId}`))
+    .then(res => {
+        if (!res.ok) throw new Error('Selected history report file could not be parsed.');
+        return res.json();
+    })
+    .then(data => {
+        loadScanData(data);
+        setDashState('loaded');
+    })
+    .catch(err => {
+        console.error(err);
+        const errorDetail = document.querySelector('#dash-error .error-detail');
+        if (errorDetail) {
+            errorDetail.textContent = err.message;
+        }
+        setDashState('error');
+    });
+}
+
+// --- Load Pre-formatted Sample Report ---
+function viewSampleReport() {
+    goto('dashboard');
+    setDashState('loading');
+    
+    fetch(getApiUrl('/api/history/sample_trivy'))
+    .then(res => {
+        if (!res.ok) throw new Error('Sample report is not initialized on the server.');
+        return res.json();
+    })
+    .then(data => {
+        loadScanData(data);
+        setDashState('loaded');
+    })
+    .catch(err => {
+        console.error(err);
+        setDashState('loaded'); // Fallback to raw mockup state
+    });
+}
+
+// --- API Routing Helpers ---
+function getApiUrl(endpoint) {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const baseUrl = isLocalhost ? '' : 'http://localhost:8000';
+    return `${baseUrl}${endpoint}`;
+}
+
+// --- Utilities ---
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function formatTimestamp(ts) {
+    if (!ts || ts === 'Unknown') return 'N/A';
+    try {
+        const date = new Date(ts);
+        if (isNaN(date.getTime())) return ts;
+        const yyyy = date.getUTCFullYear();
+        const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(date.getUTCDate()).padStart(2, '0');
+        const hh = String(date.getUTCHours()).padStart(2, '0');
+        const min = String(date.getUTCMinutes()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd} ${hh}:${min} UTC`;
+    } catch(e) {
+        return ts;
+    }
+}
+
+function parseMarkdown(md) {
+    if (!md) return "";
+    let html = md;
+    
+    // Headers
+    html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+    
+    // Bullet points (grouping consecutive lines starting with "- ")
+    html = html.replace(/(?:^-\s+(.+)\r?\n?)+/gm, (match) => {
+        const items = match.split('\n').filter(line => line.trim()).map(line => {
+            const itemText = line.replace(/^-\s+/, '');
+            return `<li>${itemText}</li>`;
+        }).join('');
+        return `<ul>${items}</ul>`;
+    });
+    
+    // Bold tags
+    html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    
+    // Inline code tags
+    html = html.replace(/`(.*?)`/g, '<code class="mono cve-inline">$1</code>');
+    
+    // Wrap paragraph text
+    const blocks = html.split(/\n{2,}/);
+    html = blocks.map(block => {
+        const trimmed = block.trim();
+        if (!trimmed) return "";
+        if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<li') || trimmed.startsWith('<div')) {
+            return trimmed;
+        }
+        return `<p>${trimmed}</p>`;
+    }).join('');
+    
+    return html;
+}
+
+// --- Application Init ---
+document.addEventListener('DOMContentLoaded', () => {
+    const envPill = document.querySelector('.env-pill');
+    if (envPill) {
+        envPill.innerHTML = `<span class="dot"></span> Bedrock &middot; Nova Lite &middot; us-east-1`;
+    }
+    viewSampleReport(); // Initial load with sample nginx report details
+});
+</script>
+</body>
+</html>
