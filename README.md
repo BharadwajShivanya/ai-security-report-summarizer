@@ -505,3 +505,5 @@ When a user uploads a Trivy report, the following happens automatically:
 ```
 
 The entire workflow transforms a large, difficult-to-read vulnerability report into a concise security assessment suitable for developers, security engineers, and engineering managers.
+
+my giddd i fdk what i am doing ? u]at hth emoment  where ot go , wh=tich whoom to go . i should og to have some conecettion 
